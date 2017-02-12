@@ -17,4 +17,8 @@ const handler = {
     },
 };
 
-run(stream, reportTableView(handler), target);
+const observable = new Rx.Observable(obs =>
+    run(stream, reportTableView(handler, obs), target)
+);
+
+observable.subscribe(console.warn.bind(console));

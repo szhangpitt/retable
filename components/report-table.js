@@ -1,8 +1,9 @@
 import h from 'snabbdom/h';
+import Rx from 'rxjs/Rx';
 
-export default function makeView (handler) {
+export default function makeView (handler, observer) {
     const tr = makeTrView(handler);
-    const th = makeThView(handler);
+    const th = makeThView(handler, observer);
 
     return function view ({selectedRowIndex, report}) {
         const thLabels = [
@@ -23,11 +24,11 @@ export default function makeView (handler) {
     };
 }
 
-function makeThView (handler) {
+function makeThView (handler, observer) {
     return function th (label, colIndex) {
         return h('th', {
             on: {
-                click: handler.colclick.bind(handler, label, colIndex),
+                click: () => observer.next(label, colIndex),
             },
         }, label);
     };
