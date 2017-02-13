@@ -6,11 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src",
-    "browserify": "browserify -d -e index.js -o dist/bundle.js -t [ babelify --presets [ es2015 ] ]",
+    "browserify": "browserify -d -e index.js -o dist/bundle.js -t [ babelify ]",
     "dir": "mkdir -p dist",
     "html": "cp index.html dist/",
     "build": "npm run dir && npm run html && npm run browserify",
-    "watch": "watchify -v -d -e index.js -o dist/bundle.js -t [ babelify --presets [ es2015 ] ]",
+    "watch": "watchify -v -d -e index.js -o dist/bundle.js -t [ babelify ]",
     "dev": "npm run dir && npm run html && npm run watch",
     "live": "live-server dist"
   },

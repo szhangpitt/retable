@@ -1,10 +1,26 @@
 import h from 'snabbdom/h';
 
-export default function makeView (handler) {
-    const tr = makeTrView(handler);
-    const th = makeThView(handler);
+export function update (state, action) {
+    return action.type === 'rowclick' ?
+        {...state,
+            selectedRowIndex: action.data.index,
+            selectedColIndex: -1,
+        } :
+        action.type === 'colclick' ?
+        {...state,
+            selectedRowIndex: -1,
+            selectedColIndex: action.data.index,
+        }
 
-    return function view ({selectedRowIndex, report}) {
+        : state;
+}
+
+
+export default function makeView (dispatch) {
+    const tr = makeTrView(dispatch);
+    const th = makeThView(dispatch);
+
+    return function view ({selectedRowIndex, selectedColIndex, report}) {
         const thLabels = [
             'type',
             'attribute',
@@ -14,43 +30,59 @@ export default function makeView (handler) {
 
         return h('table.table', [
             h('thead', [
-                h('tr', thLabels.map(th)),
+                h('tr', thLabels.map((label, colIndex) => th(label, colIndex, selectedColIndex))),
             ]),
             h('tbody', report.map((item, index) =>
-                tr(item, index, selectedRowIndex)
+                tr(item, index, selectedRowIndex, selectedColIndex)
             )),
         ]);
     };
 }
 
-function makeThView (handler) {
-    return function th (label, colIndex) {
+function makeThView (dispatch) {
+    return function th (label, colIndex, selectedColIndex) {
         return h('th', {
+            style: makeStyle(colIndex, selectedColIndex),
             on: {
-                click: handler.colclick.bind(handler, label, colIndex),
+                click: () => dispatch(
+                    {type: 'colclick', data: {label, index: colIndex}}
+                ),
             },
         }, label);
     };
 }
 
-function makeTrView (handler) {
-    return function tr ({type, attr, page, table, col, row, message}, index, selectedRowIndex) {
+function makeTrView (dispatch) {
+    return function tr (
+        {type, attr, page, table, col, row, message},
+        index,
+        selectedRowIndex,
+        selectedColIndex) {
+
         return h('tr', {
             class: {
                 'table-active': index === selectedRowIndex,
             },
             on: {
-                click: handler.rowclick.bind(
-                    handler, {type, attr, page, table, col, row, message}, index),
+                click: () => dispatch({
+                    type: 'rowclick',
+                    data: {
+                        item: {type, attr, page, table, col, row, message},
+                        index,
+                    },
+                }),
             },
         }, [
-            h('td.type', type),
-            h('td.attr', attr),
-            h('td.position', getPosition({page, table, col, row})),
-            h('td.message', message),
+            h('td.type', {style: makeStyle(0, selectedColIndex)}, type),
+            h('td.attr', {style: makeStyle(1, selectedColIndex)}, attr),
+            h('td.position', {style: makeStyle(2, selectedColIndex)}, getPosition({page, table, col, row})),
+            h('td.message', {style: makeStyle(3, selectedColIndex)}, message),
         ]);
     };
 }
+
+const makeStyle = (targetColIndex, selectedColIndex) =>
+({background: targetColIndex === selectedColIndex ? '#f0f0f0' : null});
 
 function getPosition ({
     page,
